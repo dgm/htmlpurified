@@ -1,26 +1,13 @@
 #/usr/bin/ruby
-require 'socket'      # Sockets are in standard library
 
-hostname = 'localhost'
-port = 6242
+puts "|#{File.dirname(__FILE__)}/htmlpurified.php"
 
-streamSock = TCPSocket::new( hostname, port )
-File.open(ARGV[0], "r").each_line do |line|
-  streamSock.puts( line )
-end
-streamSock.puts("STOP")
+fh = Kernel.open("|#{File.dirname(__FILE__)}/htmlpurified.php", "w+")
+document = File.open(ARGV[0], "r").read
 
+fh.puts document
+fh.close_write
+output = fh.read
+fh.close()
 
-#kludge to get php's Net_Server to finish the connection
-128.times do
-  streamSock.write(0)
-end
-
-
-response = ""
-while str = streamSock.gets
-  response += str
-end
-streamSock.close
-
-puts response
+puts output

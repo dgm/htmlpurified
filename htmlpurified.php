@@ -1,57 +1,8 @@
+#!/usr/bin/php
 <?php
-    // server base class
-    require_once 'Net/Server.php';
 
-    // base class for the handler
-    require_once 'Net/Server/Handler.php';
 
      require_once 'HTMLPurifier.auto.php';
-
-     // Include the Console_CommandLine package.
-     require_once 'Console/CommandLine.php';
-
-     // create the parser
-     $parser = new Console_CommandLine(array(
-         'description' => 'Simple echo serive that sanitizes html using htmlPurifer',
-         'version'     => '1.0.0'
-     ));
-
-     // add an option to make the program verbose
-     $parser->addOption(
-         'hostip',
-         array(
-             'short_name'  => '-h',
-             'long_name'   => '--host-ip',
-             'action'      => 'StoreString',
-             'description' => 'ip address to listen on.',
-             'default'     => '127.0.0.1'
-         )
-     );
-
-   $parser->addOption(
-       'hostport',
-       array(
-           'short_name'  => '-p',
-           'long_name'   => '--host-port',
-           'action'      => 'StoreString',
-           'description' => 'port number to listen on.',
-           'default'     => '6242'
-       )
-   );
-
-     // run the parser
-     try {
-         $result = $parser->parse();
-     } catch (Exception $exc) {
-         $parser->displayError($exc->getMessage());
-         exit;
-     }
-
-
-     // write your program here...
-     $host_ip = $result->options['hostip'] ;
-     $host_port = $result->options['hostport'] ;
-
      class MaiaDisplayLinkURI extends HTMLPurifier_Injector
      {
 
@@ -140,42 +91,10 @@
          return ($html);
      }
 
-/**
- * simple example that implements a talkback.
- *
- * Normally this should be a bit more code and in a separate file
- */
-class Net_Server_Handler_Talkback extends Net_Server_Handler
-{
-   /**
-    * If the user sends data, send it back to him
-    *
-    * @access   public
-    * @param    integer $clientId
-    * @param    string  $data
-    */
-    public $document = "";
+     $document=file_get_contents("php://stdin");
 
-    function    onReceiveData( $clientId = 0, $data = "" )
-    {
-        if (trim($data) == "STOP") {
-          $this->_server->sendData( $clientId,  sanitize_html($this->document) );
-          $this->_server->closeConnection();
-        } else {
-          $this->document .= $data;
-        }
-    }
-}
+     $sanitized = sanitize_html($document);
 
-    // create a server that forks new processes
-    $server  = &Net_Server::create('fork', $host_ip, $host_port);
-    $server->setDebugMode(FALSE);
+     print $sanitized;
 
-    $handler = &new Net_Server_Handler_Talkback;
-
-    // hand over the object that handles server events
-    $server->setCallbackObject($handler);
-
-    // start the server
-    $server->start();
 ?>
